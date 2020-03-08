@@ -1,13 +1,43 @@
 import {AStar} from '../src';
 import {expect} from 'chai';
+import {AStar_typedArray} from "../src/typedArray";
+
+const timer = function (name) {
+    var start = new Date();
+    return {
+        stop: function () {
+            var end = new Date();
+            var time = end.getTime() - start.getTime();
+            console.log('Timer:', name, 'finished in', time, 'ms');
+        }
+    }
+};
+
+const astarArray = (id) => {
+    it('straight line (array) 50 -> '+id, function() {
+        const path = AStar({x: 50, y: 50}, {x: id, y: id}, (point) => false);
+
+        expect(!!path.length).equal(true);
+    })
+};
+const astarTyped = (id) => {
+    it('straight line (typed) 50 -> '+id, function () {
+        const path = AStar_typedArray({x: 50, y: 50}, {x: id, y: id}, (point) => false);
+
+        expect(!!path.length).equal(true);
+    })
+};
+
 
 describe('astar', function () {
+    const to = 150;
 
-    it('straight line (array)', function () {
-        // const path = AStar({x:100,y:100},{x:50,y:50},(point) => false);
-        const path = AStar({x:50,y:50},{x:1000,y:1000},(point) => false);
+    astarArray(220);
+    astarTyped(220);
 
-        expect(path.length).equal(1900);
-    });
+    for(let i = 60;i<250;i+=10) {
+        astarArray(i);
+        astarTyped(i);
+    }
 
 });
