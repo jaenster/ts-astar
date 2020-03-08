@@ -1,0 +1,38 @@
+{
+  "name": "ts-astar",
+  "version": "0.9.9",
+  "description": "simple astar lib",
+  "main": "bin/index.js",
+  "types": "bin/index.d.ts",
+  "scripts": {
+    "test": "yarn && tsc && mocha -r ts-node/register test/**/*.test.ts",
+    "coverage": "yarn && tsc && nyc yarn test",
+    "build": "yarn && tsc"
+  },
+  "keywords": [
+    "astar",
+    "a*",
+    "typescript",
+    "ts",
+    "2d",
+    "pathfinding"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaenster/ts-astar.git"
+  },
+  "author": "Jaenster",
+  "license": "MIT",
+  "files": [
+    "/bin"
+  ],
+  "devDependencies": {
+    "@types/chai": "^4.2.9",
+    "@types/mocha": "^7.0.1",
+    "chai": "^4.2.0",
+    "mocha": "^7.0.1",
+    "nyc": "^15.0.0",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.2"
+  }
+}
