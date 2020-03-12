@@ -19,8 +19,6 @@ const [floatToInt, intToFloat] = (dv => [
     },
 ])(new DataView(new ArrayBuffer(8)));
 
-console.log(floatToInt(1));
-
 export function AStar_typedArray(begin: point, end: point, isWall: ((point: point) => boolean)): point[] {
     const size = 6;
     type node = point & { from?: node, h?: number, g?: number }
@@ -28,7 +26,7 @@ export function AStar_typedArray(begin: point, end: point, isWall: ((point: poin
     // Append some crap to Uint16Arrays
     interface myTypedArray extends Uint32Array {
         filledTo?: number, // Something i use internally
-        emtpy?: number[]
+        empty?: number[]
     }
 
     const write = ((field: myTypedArray, pos: number, ...what: number[]) => {
@@ -37,12 +35,21 @@ export function AStar_typedArray(begin: point, end: point, isWall: ((point: poin
     });
 
     const push = (field: myTypedArray, ...what: number[]) => {
-        if (field.emtpy.length) {
-            // reuse fields
-            write(field, field.emtpy.pop(), ...what);
-        } else if (field.filledTo + size >= field.length) {
+        if (field.filledTo + size >= field.length && !field.empty.length) {
             // full yet no
+            // Time to clean up
+            const lowest = intToFloat(field[lowestH(field)+3]);
 
+            // remove
+            const skip = lowest / 3 * 4;
+            for(let i=0;i<field.length;i+=6) if (intToFloat(field[i+3]) > skip) zeroOut(field, i);
+            if (!field.empty.length) {
+                throw new Error('insufficient space');
+            }
+        }
+        if (field.empty.length) {
+            // reuse fields
+            write(field, field.empty.pop(), ...what);
         } else {
             write(field, field.filledTo = field.filledTo | 0, ...what);
             const len = what.length;
@@ -50,29 +57,27 @@ export function AStar_typedArray(begin: point, end: point, isWall: ((point: poin
         }
     };
 
-    const lowestField = (offset: number, field: myTypedArray): false | number => {
-        let winner = Infinity, index = null;
+    const lowestOrHigherField = (lower:true,offset: number, field: myTypedArray): false | number => {
+        let winner = getDistance(begin,end), index = null;
         let to = field.filledTo - size;
         if (to < 0) to = 1;
         for (let i = 0, val; i < to; i += size) {
-            val = field[i + offset];
+            val = intToFloat(field[i + offset]);
             if (val < winner && field[i] && field[i] !== 0xFFFF) {
                 winner = val;
                 index = i;
             }
         }
         if (index === null) {
-            console.log(field.filledTo);
-            console.log(field.length);
             throw new Error('not found');
         }
         return index;
     };
 
     const zeroOut = (field: myTypedArray, offset: number) => {
-        if (!field.hasOwnProperty('empty')) field.emtpy = [];
-        field.emtpy.push(offset);
-        write(field, offset, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+        if (!field.hasOwnProperty('empty')) field.empty = [];
+        field.empty.push(offset);
+        write(field, offset, 0xFFFF, 0xFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF, 0xFFFF);
     };
 
     const findByCoord = (field: myTypedArray, x: number, y: number): number | false => {
@@ -88,16 +93,14 @@ export function AStar_typedArray(begin: point, end: point, isWall: ((point: poin
         return field.slice(offset, offset + size);
     };
 
-    const lowestG = lowestField.bind(null, 2);
-    const lowestH = lowestField.bind(null, 3);
+    const lowestH = lowestOrHigherField.bind(null,true, 3);
 
-
-    const open: myTypedArray = new Uint32Array(0xFFF);
+    const open: myTypedArray = new Uint32Array(0xFFFF);
     const closed: myTypedArray = new Uint32Array(0xFFFF);
     const closedBin = new Uint8Array(0xFFFFFF);
     // const openRef = new Uint8Array(0xFFFFFF);
-    open.emtpy = [];
-    closed.emtpy = [];
+    open.empty = [];
+    closed.empty = [];
 
     push(open, ...[begin.x, begin.y,
         /*h*/floatToInt(getDistance(begin, end)),
