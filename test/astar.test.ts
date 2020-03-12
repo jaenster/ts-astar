@@ -35,7 +35,7 @@ describe('astar', function () {
     astarArray(220);
     astarTyped(220);
 
-    for(let i = 60;i<250;i+=10) {
+    for(let i = 230;i<500;i+=10) {
         astarArray(i);
         astarTyped(i);
     }
