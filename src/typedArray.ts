@@ -41,11 +41,14 @@ export function AStar_typedArray(begin: point, end: point, isWall: ((point: poin
             const lowest = intToFloat(field[lowestH(field)+3]);
 
             // remove
-            const skip = lowest / 3 * 4;
+            const skip = lowest / 3 * 7;
             for(let i=0;i<field.length;i+=6) if (intToFloat(field[i+3]) > skip) zeroOut(field, i);
             if (!field.empty.length) {
                 throw new Error('insufficient space');
             }
+
+            console.log('cleared '+field.empty.length+' fields');
+
         }
         if (field.empty.length) {
             // reuse fields
@@ -135,9 +138,6 @@ export function AStar_typedArray(begin: point, end: point, isWall: ((point: poin
                 cur = [fromX, fromY]
             }
             return path;
-        }
-        if (h === 0) {
-            console.log('')
         }
 
         defaultNeighbours.forEach((nb) => {
